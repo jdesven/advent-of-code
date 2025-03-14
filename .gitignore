@@ -1,0 +1,15 @@
+# Advent of Code input files
+input
+*.csv
+*.txt
+
+# Python
+__pycache__
+
+# Rust
+debug/
+target/
+*.pdb
+
+#Visual Studio Code
+.vscode

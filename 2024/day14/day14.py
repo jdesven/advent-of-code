@@ -13,3 +13,8 @@ def calc(time):
     return prod(sum_quadrant)
 
 print(calc(100))
+
+calcs = [0] * 10000
+for i in range(10000):
+    calcs[i] = calc(i)
+print(calcs.index(min(calcs)))

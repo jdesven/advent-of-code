@@ -34,11 +34,11 @@ def grid_to_complex_set(file: str, relevant_chars: set):
                 output_set.add(i_line * 1j + i_char)
     return output_set
 
-def grid_to_dict(file: str, relevant_chars: set = set()):
+def grid_to_dict(file: str, relevant_chars: set = set(), cast = str):
     lines = lines_to_list(file)
     output = {}
     for i_line, line in enumerate(lines):
         for i_char, char in enumerate(line):
             if relevant_chars == set() or char in relevant_chars:
-                output[i_line * 1j + i_char] = char
+                output[i_line * 1j + i_char] = char if cast == str else list(map(cast, [char]))[0]
     return output

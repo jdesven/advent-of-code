@@ -9,8 +9,10 @@ def lines_to_list(file: str, cast = str, read_file = True, regex = ''):
     raw_str = file_to_str(file) if read_file == True else file
     return [list(map(cast, [line]))[0] if regex == '' else list(map(cast, [''.join(re.findall(regex, line))]))[0] for line in raw_str.splitlines()]
 
-def seperator_to_list(file: str, seperator = '' , cast = str, read_file = True):
+def seperator_to_list(file: str, seperator = '' , cast = str, read_file = True, regex = ''):
     raw_str = file_to_str(file) if read_file == True else file
+    if regex != '':
+        raw_str = ''.join(re.findall(regex, raw_str))
     if seperator != '':
         raw_str = [part for part in raw_str.split(seperator) if part != '']
     return [element if cast == str else list(map(cast, [element]))[0] for element in raw_str]
@@ -34,8 +36,8 @@ def grid_to_complex_set(file: str, relevant_chars: set):
                 output_set.add(i_line * 1j + i_char)
     return output_set
 
-def grid_to_dict(file: str, relevant_chars: set = set(), cast = str):
-    lines = lines_to_list(file)
+def grid_to_dict(file: str, relevant_chars: set = set(), cast = str, read_file = True):
+    lines = lines_to_list(file, read_file = read_file)
     output = {}
     for i_line, line in enumerate(lines):
         for i_char, char in enumerate(line):

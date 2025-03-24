@@ -1,35 +1,23 @@
-import numpy as np
+from pyhelper.pyimport import lines_to_list, seperator_to_list
 
-with open('2024/input/day5_input.txt', 'r') as file:
-    txt = np.array(file.read().splitlines())
-txt_rules = [np.array(row).astype(int) for row in np.asarray(np.char.split(txt[0:np.where(txt == '')[0][0]],'|'))]
-txt_tests = [np.array(row).astype(int) for row in np.asarray(np.char.split(txt[np.where(txt == '')[0][0] + 1::],','))]
+txt = lines_to_list('2024/input/day5_input.txt')
+txt_rules = [seperator_to_list(line, seperator = '|', cast = int, read_file = False) for line in txt[:txt.index('')]]
+txt_tests = [seperator_to_list(line, seperator = ',', cast = int, read_file = False) for line in txt[txt.index('') + 1:]]
 
-# part 1
 total = 0
 for test in txt_tests:
-    is_valid = True
-    for rule in txt_rules:
-        if rule[0] in test and rule[1] in test and is_valid == True:
-            if np.where(test == rule[0])[0] > np.where(test == rule[1])[0]:
-                is_valid = False
-    if is_valid == True:
-        total += test[int((test.size - 1) / 2)]
-print('ans1: ' + str(total))
+    if all(not(rule[0] in test and rule[1] in test and test.index(rule[0]) > test.index(rule[1])) for rule in txt_rules):
+        total += test[int((len(test) - 1) / 2)]
+print(total)
 
-# part 2
 total = 0
 for test in txt_tests:
-    is_valid = False
-    is_initially_false = False
-    while is_valid == False:
-        is_valid = True
-        for rule in txt_rules:
-            if rule[0] in test and rule[1] in test:
-                if np.where(test == rule[0])[0] > np.where(test == rule[1])[0]:
-                    test = np.insert(np.delete(test, np.where(test == rule[0])[0]), np.where(test == rule[1])[0], rule[0])
-                    is_valid = False
-                    is_initially_false = True
-    if is_initially_false == True:
-        total += test[int((test.size - 1) / 2)]
-print('ans2: ' + str(total))
+    if any(rule[0] in test and rule[1] in test and test.index(rule[0]) > test.index(rule[1]) for rule in txt_rules):
+        while any(rule[0] in test and rule[1] in test and test.index(rule[0]) > test.index(rule[1]) for rule in txt_rules):
+            for rule in txt_rules:
+                if rule[0] in test and rule[1] in test:
+                    indices = test.index(rule[0]), test.index(rule[1])
+                    if rule[0] in test and rule[1] in test and indices[0] > indices[1]:
+                        test[indices[0]], test[indices[1]] = test[indices[1]], test[indices[0]]
+        total += test[int((len(test) - 1) / 2)]
+print(total)

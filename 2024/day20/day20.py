@@ -1,14 +1,10 @@
-with open('2024/input/day20_input.txt', 'r') as file:
-    map = set()
-    for i_line, line in enumerate(file.read().splitlines()):
-        for i_char, char in enumerate(line):
-            match char:
-                case '.':
-                    map.add(i_char + i_line * 1j)
-                case 'S':
-                    start_point = i_char + i_line * 1j
-                case 'E':
-                    end_point = i_char + i_line * 1j
+from pyhelper.pyimport import grid_to_dict
+from pyhelper.pyalgorithm import breadth_first_search
+map = grid_to_dict('2024/input/day20_input.txt', relevant_chars = {'.', 'S', 'E'})
+
+start_point = [pos for pos, val in map.items() if val == 'S'][0]
+end_point = [pos for pos, val in map.items() if val == 'E'][0]
+correct_path = {pos: i for i, pos in enumerate(breadth_first_search(map.keys(), start_point, end_point))}
 
 def count_cheats(cheat_length):
     count = 0
@@ -22,22 +18,6 @@ def count_cheats(cheat_length):
                         count += 1
     return count
 
-paths = [[start_point]]
-while len(paths) > 0:
-    next_paths = []
-    for path in paths:
-        for dir in [-1, 1, -1j, 1j]:
-            next_step = path[-1] + dir
-            if next_step == end_point:
-                correct_path = {}
-                for i_pos, pos in enumerate(path + [next_step]):
-                    correct_path[pos] = i_pos
-            elif next_step in map and next_step != (path[-2] if len(path) > 1 else 0):
-                next_paths.append(path + [next_step])
-    paths = next_paths
+print(count_cheats(2))
 
-# part 1
-print('ans1: ' + str(count_cheats(2)))
-
-# part 2
-print('ans2: ' + str(count_cheats(20)))
+print(count_cheats(20))

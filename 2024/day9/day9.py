@@ -1,74 +1,37 @@
-import numpy as np
+from pyhelper.pyimport import seperator_to_list
+txt = seperator_to_list('2024/input/day9_input.txt', cast = int)
 
-with open('2024/input/day9_input.txt', 'r') as file:
-    txt = np.array([int(num) for num in file.read()])
+def calc_txt_full(txt):
+    txt_full = []
+    for i, num in enumerate(txt):
+        if i % 2 == 0:
+            txt_full.extend([int(i / 2)] * num)
+        else:
+            txt_full.extend(['.'] * num)
+    return txt_full
 
-# part 1
-txt_extended = []
-for i in range(len(txt[0::2])):
-    for j in range(txt[0::2][i]):
-        txt_extended.append(i)
+txt_full = calc_txt_full(txt)
+ptr_empty = 0
+ptr_move = len(txt_full) - 1
+while ptr_move > ptr_empty:
+    if txt_full[ptr_move] != '.':
+        while txt_full[ptr_empty] != '.':
+            ptr_empty += 1
+        if ptr_move > ptr_empty:
+            txt_full[ptr_empty] = txt_full[ptr_move]
+            txt_full[ptr_move] = '.'
+    ptr_move -= 1
+print(sum(i * num for i, num in enumerate(txt_full) if num != '.'))
 
-correct_order = []
-i_txt = 0
-i_extended_front = 0
-i_extended_back = len(txt_extended) - 1
-while len(correct_order) < len(txt_extended):
-    for j in range(txt[i_txt]):
-        correct_order.append(txt_extended[i_extended_front])
-        i_extended_front += 1
-    i_txt += 1
-    for j in range(txt[i_txt]):
-        correct_order.append(txt_extended[i_extended_back])
-        i_extended_back -= 1
-    i_txt += 1
-correct_order = correct_order[:len(txt_extended)]
-
-sum = 0
-for i, num in enumerate(correct_order):
-    sum += i * num
-print('ans1: ' + str(sum))
-
-# part 2
-txt_extended = []
-for i in range(len(txt[0::2])):
-    for j in range(txt[0::2][i]):
-        txt_extended.append(i)
-    if i < len(txt[1::2]):
-        for j in range(txt[1::2][i]):
-            txt_extended.append('.')
-
-i_backwards = len(txt_extended) - 1
-while i_backwards > 0:
-    if txt_extended[i_backwards] != '.':
-        current_num = txt_extended[i_backwards]
-        chunk_size = 1
-        while txt_extended[i_backwards - chunk_size] == current_num:
-            chunk_size += 1
-        found_suitable_location = False
-        i_empty = 0
-        empty_size = 0
-        while found_suitable_location == False and i_empty < len(txt_extended):
-            if txt_extended[i_empty] == '.':
-                empty_size += 1
-            else:
-                empty_size = 0
-            if empty_size == chunk_size:
-                found_suitable_location = True
-            else:
-                i_empty += 1
-        if found_suitable_location == True and i_empty < i_backwards:
-            for i_rel_chunk in range(chunk_size):
-                txt_extended[i_backwards - i_rel_chunk] = '.'
-            for i_rel_empty in range(chunk_size):
-                txt_extended[i_empty - i_rel_empty] = current_num
-        # correct i
-        i_backwards -= chunk_size
-    else:
-        i_backwards -= 1
-
-sum = 0
-for i in range(len(txt_extended)):
-    if txt_extended[i] != '.':
-        sum += i * txt_extended[i]
-print('ans2: ' + str(sum))
+txt_full = calc_txt_full(txt)
+for ptr_move in range(len(txt_full) - 1, 0, -1):
+    if txt_full[ptr_move] != '.' and txt_full[ptr_move] != txt_full[ptr_move - 1]:
+        size_move = txt_full.count(txt_full[ptr_move])
+        for ptr_empty in range(ptr_move):
+            if txt_full[ptr_empty] == '.' and txt_full[ptr_empty - 1] != '.':
+                size_empty = next((i for i in range(ptr_empty, len(txt_full)) if isinstance(txt_full[i + 1], int)), -1) - ptr_empty + 1
+                if size_empty >= size_move:
+                    txt_full[ptr_empty:ptr_empty + size_move] = txt_full[ptr_move:ptr_move + size_move]
+                    txt_full[ptr_move:ptr_move + size_move] = ['.'] * size_move
+                    break
+print(sum(i * num for i, num in enumerate(txt_full) if num != '.'))

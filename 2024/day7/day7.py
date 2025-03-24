@@ -1,60 +1,42 @@
-import numpy as np
 from itertools import combinations_with_replacement
 from sympy.utilities.iterables import multiset_permutations
 from math import log
+from pyhelper.pyimport import lines_to_list, seperator_to_list
 
-with open('2024/input/day7_input.txt', 'r') as file:
-    txt = np.array(file.read().splitlines())
-tests = [int(row.split(':')[0]) for row in txt]
-nums = [np.array(list(map(int, row.split(' ')))) for row in np.array([row.split(':')[1][1:] for row in txt])]
+tests = [(int(line[:line.index(':')]), tuple(seperator_to_list(line[line.index(':') + 2:], seperator = ' ', cast = int, read_file = False))) for line in lines_to_list('2024/input/day7_input.txt')]
 
-# part 1
 total = 0
-for i_test, test in enumerate(tests):
+for answer, numbers in tests:
     answer_found = False
-    combinations = list(combinations_with_replacement(['+', '*'], len(nums[i_test]) - 1))
-    for combination in combinations:
-        permutations = list(multiset_permutations(combination))
-        for permutation in permutations:
+    for combination in list(combinations_with_replacement(['+', '*'], len(numbers) - 1)):
+        for permutation in multiset_permutations(combination):
             if answer_found == False:
-                calculation = nums[i_test][0]
-                for i_operator, operator in enumerate(permutation):
-                    match operator:
-                        case '+':
-                            calculation += nums[i_test][i_operator + 1]
-                        case '*':
-                            calculation *= nums[i_test][i_operator + 1]
-                if calculation == test:
+                calculation = numbers[0]
+                for i_operator, operator in enumerate(permutation, start = 1):
+                    if operator == '+':
+                        calculation += numbers[i_operator]
+                    elif operator == '*':
+                        calculation *= numbers[i_operator]
+                if calculation == answer:
                     answer_found = True
                     total += calculation
-print('ans1: ' + str(total))
+print(total)
 
-# part 1
 total = 0
-for i_test, test in enumerate(tests):
+for answer, numbers in tests:
     answer_found = False
-    combinations = list(combinations_with_replacement(['+', '*', '|'], len(nums[i_test]) - 1))
-    for combination in combinations:
-        permutations = list(multiset_permutations(combination))
-        for permutation in permutations:
-            calculation = nums[i_test][0]
-            num_next = nums[i_test][1]
-            for i_operator, operator in enumerate(permutation):
-                if answer_found == False:
-                    match operator:
-                        case '|':
-                            calculation = 10**int(log(num_next, 10)+1)*calculation+num_next
-                            if i_operator + 1 < len(permutation):
-                                num_next = nums[i_test][i_operator + 2]
-                        case '+':
-                            calculation += num_next
-                            if i_operator + 1 < len(permutation):
-                                num_next = nums[i_test][i_operator + 2]
-                        case '*':
-                            calculation *= num_next
-                            if i_operator + 1 < len(permutation):
-                                num_next = nums[i_test][i_operator + 2]
-            if calculation == test:
-                answer_found = True
-                total += calculation
-print('ans1: ' + str(total))
+    for combination in list(combinations_with_replacement(['+', '*', '|'], len(numbers) - 1)):
+        for permutation in list(multiset_permutations(combination)):
+            if answer_found == False:
+                calculation = numbers[0]
+                for i_operator, operator in enumerate(permutation, start = 1):
+                    if operator == '|':
+                        calculation = 10**int(log(numbers[i_operator], 10) + 1) * calculation + numbers[i_operator]
+                    elif operator == '+':
+                        calculation += numbers[i_operator]
+                    elif operator == '*':
+                        calculation *= numbers[i_operator]
+                if calculation == answer:
+                    answer_found = True
+                    total += calculation
+print(total)

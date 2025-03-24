@@ -4,8 +4,8 @@
 The data is imported from the input file and formatted into a list of list, where every inner list represents one report.
 
 ```python
-with open('2024/input/day2_input.txt', 'r') as file:
-    nums = [list(map(int,(line))) for line in[row.split(' ') for row in file.read().splitlines()]]
+from pyhelper.pyimport import lines_to_list_of_list
+nums = lines_to_list_of_list("2024\input\day2_input.txt", ' ', int)
 ```
 
 ## Solution

@@ -1,21 +1,11 @@
-import re
-
-with open('2024/input/day17_input.txt', 'r') as file:
-    register_str, program_str = file.read().split('\n\n')
-reg_a, reg_b, reg_c = [int(num) for num in re.sub('[^0-9\n]','',register_str).splitlines()]
-program = [int(num) for num in re.sub('[^0-9,]','',program_str).split(',')]
+from pyhelper.pyimport import seperator_to_list
+register_str, program_str = seperator_to_list('2024/input/day17_input.txt', seperator = '\n\n')
+reg_a, reg_b, reg_c = seperator_to_list(register_str, seperator = '\n', cast = int, read_file = False, regex = '[0-9\n]')
+program = seperator_to_list(program_str, seperator = ',', cast = int, read_file = False, regex = '[0-9,]')
         
 def calc_output(reg_a, reg_b, reg_c, program):
     def get_combo_operand(operand):
-        match operand:
-            case 4:
-                return reg_a
-            case 5:
-                return reg_b
-            case 6:
-                return reg_c
-            case _:
-                return operand
+        return {4: reg_a, 5: reg_b, 6: reg_c}[operand] if operand in (4, 5, 6) else operand
             
     pointer = 0
     output = []
@@ -41,5 +31,4 @@ def calc_output(reg_a, reg_b, reg_c, program):
             pointer += 2
     return output
 
-# part 1
-print('ans1: ' + ','.join([str(num) for num in calc_output(reg_a, reg_b, reg_c, program)]))
+print(','.join([str(num) for num in calc_output(reg_a, reg_b, reg_c, program)]))

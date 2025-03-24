@@ -1,15 +1,9 @@
-with open('2024/input/day15_input.txt', 'r') as file:
-    map_str, instructions_str = file.read().split('\n\n')
-map = {}
-for i_line, line in enumerate(map_str.split('\n')):
-    for i_char, char in enumerate([char for char in line if char != '#']):
-        if char != '#':
-            map[i_line * 1j + i_char] = char
-            if char =='@':
-                pos_robot = i_line * 1j + i_char
+from pyhelper.pyimport import seperator_to_list, grid_to_dict
+map_str, instructions_str = seperator_to_list('2024/input/day15_input.txt', '\n\n')
+map = grid_to_dict(map_str, relevant_chars = {'.', '@', 'O'}, read_file = False)
 instructions = [{'>': 1, '<': -1, '^': -1j, 'v': 1j}[char] for char in instructions_str.replace('\n','')]
 
-# part 1
+pos_robot = [pos for pos, val in map.items() if val == '@'][0]
 for dir in instructions:
     next_pos = pos_robot + dir
     affected_pos = [pos_robot]
@@ -23,4 +17,4 @@ for dir in instructions:
             break
         else:
             next_pos += dir
-print('ans1: ' + str(sum([100 * int(pos.imag) + int(pos.real) for pos in map if map[pos] == 'O'])))
+print(sum([100 * int(pos.imag) + int(pos.real) for pos in map if map[pos] == 'O']))

@@ -1,11 +1,9 @@
-with open('2024/input/day1_input.txt', 'r') as file:
-    nums = [[int(num.split('   ')[0]), int(num.split('   ')[1])] for num in [nums for nums in file.read().splitlines()]]
+from pyhelper.pyimport import lines_to_list_of_list
+nums = lines_to_list_of_list("2024\input\day1_input.txt", '   ', int)
 
 nums_left = sorted([row[0] for row in nums])
 nums_right = sorted([row[1] for row in nums])
 
-differences = [abs(nums_left[i] - nums_right[i]) for i in range(len(nums))]
-print(sum(differences))
+print(sum([abs(nums_left[i] - nums_right[i]) for i in range(len(nums))]))
 
-similarity_scores = [nums_left[i] * nums_right.count(nums_left[i]) for i in range(len(nums))]
-print(sum(similarity_scores))
+print(sum([nums_left[i] * nums_right.count(nums_left[i]) for i in range(len(nums))]))

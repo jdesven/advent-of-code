@@ -1,12 +1,6 @@
-import numpy as np
- 
-rows = [line for line in np.loadtxt('2024/input/day12_input.txt', dtype = str)]
-map = {}
-for i_row, row in enumerate(rows):
-    for i_char in range(len(row)):
-        map[i_char + i_row * 1j] = rows[i_row][i_char]
+from pyhelper.pyimport import grid_to_dict
+map = grid_to_dict('2024/input/day12_input.txt')
 
-# part 1
 price = 0
 map_seen = set()
 for pos_start, letter in map.items():
@@ -22,9 +16,8 @@ for pos_start, letter in map.items():
                     pos_region.append(pos + dir)
                     map_seen.add(pos + dir)
         price += len(pos_region) * perimeter
-print('ans1: ' + str(price))
+print(price)
 
-# part 2
 price = 0
 map_seen = set()
 for pos_start, letter in map.items():
@@ -43,4 +36,4 @@ for pos_start, letter in map.items():
                     if (map.get(pos + x) != letter and map.get(pos + y) != letter) or (map.get(pos + x) == letter and map.get(pos + y) == letter and map.get(pos + x + y) != letter):
                         corners += 1
         price += len(pos_region) * corners
-print('ans2: ' + str(price))
+print(price)

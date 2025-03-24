@@ -1,20 +1,15 @@
-import re
 from math import prod
+from pyhelper.pyimport import lines_to_list, seperator_to_list
 
-with open('2024/input/day14_input.txt', 'r') as file:
-    txt = file.read().splitlines()
-input = [[int(num) for num in row] for row in [row.split(',')[1:5] for row in [re.sub(r'=',',',re.sub(r'[^-0-9=,]','',line)) for line in txt]]]
+rows = lines_to_list('2024/input/day14_input.txt', regex = '[-0-9, ]')
+input = [seperator_to_list(row.replace(' ', ','), seperator = ',', cast = int, read_file = False) for row in rows]
 
-# part 1
-sum_quadrant = [0, 0, 0, 0]
-for i in range(len(input)):
-    pos = [(input[i][0] + 100 * input[i][2]) % 101, (input[i][1] + 100 * input[i][3]) % 103]
-    if pos[0] < 50 and pos[1] < 51:
-        sum_quadrant[0] += 1
-    elif pos[0] > 50 and pos[1] < 51:
-        sum_quadrant[1] += 1
-    elif pos[0] < 50 and pos[1] > 51:
-        sum_quadrant[2] += 1
-    elif pos[0] > 50 and pos[1] > 51:
-        sum_quadrant[3] += 1
-print('ans1: ' + str(prod(sum_quadrant)))
+def calc(time):
+    sum_quadrant = [0, 0, 0, 0]
+    for pos_x, pos_y, dir_x, dir_y in input:
+        pos = [(pos_x + time * dir_x) % 101, (pos_y + time * dir_y) % 103]
+        if pos[0] != 50 and pos[1] != 51:
+            sum_quadrant[(1 if pos[0] > 50 else 0) + (2 if pos[1] > 51 else 0)] += 1
+    return prod(sum_quadrant)
+
+print(calc(100))

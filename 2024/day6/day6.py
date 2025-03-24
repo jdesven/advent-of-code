@@ -1,46 +1,31 @@
-import numpy as np
+from pyhelper.pyimport import grid_to_dict
+map = grid_to_dict('2024/input/day6_input.txt', {'.', '#', '^'})
 
-map = np.array([np.array(list(line)) for line in np.loadtxt('2024/input/day6_input.txt', dtype = str, comments = None)])
+pos = [pos for pos, val in map.items() if val == '^'][0]
+seen_pos = {pos}
+dir = -1j
+while pos + dir in map:
+    match map[pos + dir]:
+        case '#':
+            dir = dir * 1j
+        case '.' | '^':
+            pos = pos + dir
+            seen_pos.add(pos)
+print(len(seen_pos))
 
-# part 1
-pos = np.array([np.where(map == '^')[1][0], np.where(map == '^')[0][0]])
-seen_pos = {tuple(pos)}
-dir = np.array([0, -1])
-guard_has_escaped = False
-while guard_has_escaped == False:
-    if (0 <= pos[0] + dir[0] < len(map[0]) and 0 <= pos[1] + dir[1] < len(map)):
-        match map[pos[1] + dir[1]][pos[0] + dir[0]]:
-            case '#':
-                dir = np.matmul(np.array([[0, -1], [1, 0]]), dir)
-            case '.' | '^':
-                pos = pos + dir
-                seen_pos.add(tuple(pos))
-    else:
-        guard_has_escaped = True
-print('answ1: ' + str(len(seen_pos)))
-
-# part 2
 count = 0
-for obs_x in range(len(map[0])):
-    for obs_y in range(len(map)):
-        pos_dir = np.array([np.where(map == '^')[1][0], np.where(map == '^')[0][0], 0, -1])
-        if map[obs_y][obs_x] == '.':
-            map[obs_y][obs_x] = '#'
-            escaped_or_looping = False
-            seen_pos_dir = {tuple(pos_dir)}
-            while escaped_or_looping == False:
-                if (0 <= pos_dir[0] + pos_dir[2] < len(map[0]) and 0 <= pos_dir[1] + pos_dir[3] < len(map)):
-                    match map[pos_dir[1] + pos_dir[3]][pos_dir[0] + pos_dir[2]]:
-                        case '#':
-                            pos_dir[2:] = np.matmul(np.array([[0, -1], [1, 0]]), pos_dir[2:])
-                        case '.' | '^':
-                            pos_dir[:2] = np.array([pos_dir[0] + pos_dir[2], pos_dir[1] + pos_dir[3]])
-                            if tuple(pos_dir) in seen_pos_dir:
-                                escaped_or_looping = True
-                                map[obs_y][obs_x] = '.'
-                                count += 1
-                            seen_pos_dir.add(tuple(pos_dir))
-                else:
-                    escaped_or_looping = True
-                    map[obs_y][obs_x] = '.'
-print('answ1: ' + str(count))
+pos_init = [pos for pos, val in map.items() if val == '^'][0]
+for pos in [pos for pos in map.keys() if pos in seen_pos]:
+    pos_dir = (pos_init, -1j)
+    map_modified = {**map, pos: '#'}
+    escaped_or_looping = False
+    seen_pos_dir = set()
+    while pos_dir[0] + pos_dir[1] in map_modified and pos_dir not in seen_pos_dir:
+        seen_pos_dir.add(pos_dir)
+        if map_modified[pos_dir[0] + pos_dir[1]] == '#':
+            pos_dir = (pos_dir[0], pos_dir[1] * 1j)
+        else:
+            pos_dir = (pos_dir[0] + pos_dir[1], pos_dir[1])
+    if pos_dir in seen_pos_dir:
+        count += 1
+print(count)

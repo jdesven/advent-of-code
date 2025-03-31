@@ -1,211 +1,76 @@
--- IMPORTING
+-- IMPORT DATA
 
-DROP TABLE IF EXISTS #import
+DECLARE @input NVARCHAR(MAX);
 
-CREATE TABLE #import (
-    import_chars VARCHAR(MAX)
-);
+SELECT @input = BulkColumn
+FROM OPENROWSET(BULK 'C:\Users\jelle\Documents\Github\advent-of-code\2023\input\day5_input.txt', SINGLE_NCLOB) AS filedata;
 
-DROP TABLE IF EXISTS #mapping
+DROP TABLE IF EXISTS #almanac;
 
-CREATE TABLE #mapping (
-    source VARCHAR(100)
-    ,destination VARCHAR(100)
-    ,destination_number BIGINT
-    ,source_number BIGINT
-    ,conversion_range BIGINT
-);
+WITH input_lines AS(
+    SELECT ROW_NUMBER() over (ORDER BY ordinal) as ordinal
+        ,value AS row
+    FROM STRING_SPLIT(SUBSTRING(@input, CHARINDEX(CHAR(13), @input) + 4, LEN(@input)), CHAR(13), 1)
+    WHERE value <> CHAR(10)
+),
+cte_add_category AS (
+    SELECT *
+        ,row as category
+    FROM input_lines
+    WHERE ordinal = 1
+    UNION ALL
+    SELECT i.ordinal
+        ,i.row
+        ,CASE WHEN i.row LIKE '%:%'
+            THEN i.row
+            ELSE c.category
+        END AS category
+    FROM cte_add_category AS c
+    INNER JOIN input_lines AS i ON c.ordinal + 1 = i.ordinal
+)
+SELECT ROW_NUMBER() over (ORDER BY c.ordinal) as ordinal
+    ,cat.i_category AS category
+    ,CAST(SUBSTRING(row, 2, CHARINDEX(' ', row) - 2) AS BIGINT) AS destination_start
+    ,CAST(SUBSTRING(row, CHARINDEX(' ', row) + 1, LEN(row) - CHARINDEX(' ', row) - CHARINDEX(' ', REVERSE(row))) AS BIGINT) AS source_start
+    ,CAST(SUBSTRING(row, LEN(row) - CHARINDEX(' ', REVERSE(row)) + 2, LEN(row)) AS BIGINT) AS range_length
+INTO #almanac
+FROM cte_add_category AS c
+INNER JOIN (
+    SELECT category
+        ,ROW_NUMBER() OVER (ORDER BY MIN(ordinal)) AS i_category
+    FROM cte_add_category AS c
+    GROUP BY category
+) AS cat ON c.category = cat.category
+WHERE row NOT LIKE '%:'
+OPTION (MAXRECURSION 0);
 
-TRUNCATE TABLE #import
-
-BULK INSERT #import
-FROM '<PATH>\day5_input_seeds_soil.txt'
-
-INSERT INTO #mapping
-SELECT 'seed'
-    ,'soil'
-    ,SUBSTRING(import_chars, 1, CHARINDEX(' ', import_chars))
-    ,SUBSTRING(import_chars, CHARINDEX(' ', import_chars) + 1, LEN(import_chars) - CHARINDEX(' ', import_chars) - CHARINDEX(' ', REVERSE(import_chars)))
-    ,SUBSTRING(import_chars, LEN(import_chars) - CHARINDEX(' ', REVERSE(import_chars)) + 2, LEN(import_chars))
-FROM #import
-WHERE import_chars <> 'seed-to-soil map:'
-
-TRUNCATE TABLE #import
-
-BULK INSERT #import
-FROM '<PATH>\day5_input_soil_fertilizer.txt'
-
-INSERT INTO #mapping
-SELECT 'soil'
-    ,'fertilizer'
-    ,SUBSTRING(import_chars, 1, CHARINDEX(' ', import_chars))
-    ,SUBSTRING(import_chars, CHARINDEX(' ', import_chars) + 1, LEN(import_chars) - CHARINDEX(' ', import_chars) - CHARINDEX(' ', REVERSE(import_chars)))
-    ,SUBSTRING(import_chars, LEN(import_chars) - CHARINDEX(' ', REVERSE(import_chars)) + 2, LEN(import_chars))
-FROM #import
-WHERE import_chars <> 'soil-to-fertilizer map:'
-
-TRUNCATE TABLE #import
-
-BULK INSERT #import
-FROM '<PATH>\day5_input_fertilizer_water.txt'
-
-INSERT INTO #mapping
-SELECT 'fertilizer'
-    ,'water'
-    ,SUBSTRING(import_chars, 1, CHARINDEX(' ', import_chars))
-    ,SUBSTRING(import_chars, CHARINDEX(' ', import_chars) + 1, LEN(import_chars) - CHARINDEX(' ', import_chars) - CHARINDEX(' ', REVERSE(import_chars)))
-    ,SUBSTRING(import_chars, LEN(import_chars) - CHARINDEX(' ', REVERSE(import_chars)) + 2, LEN(import_chars))
-FROM #import
-WHERE import_chars <> 'fertilizer-to-water map:'
-
-TRUNCATE TABLE #import
-
-BULK INSERT #import
-FROM '<PATH>\day5_input_water_light.txt'
-
-INSERT INTO #mapping
-SELECT 'water'
-    ,'light'
-    ,SUBSTRING(import_chars, 1, CHARINDEX(' ', import_chars))
-    ,SUBSTRING(import_chars, CHARINDEX(' ', import_chars) + 1, LEN(import_chars) - CHARINDEX(' ', import_chars) - CHARINDEX(' ', REVERSE(import_chars)))
-    ,SUBSTRING(import_chars, LEN(import_chars) - CHARINDEX(' ', REVERSE(import_chars)) + 2, LEN(import_chars))
-FROM #import
-WHERE import_chars <> 'water-to-light map:'
-
-TRUNCATE TABLE #import
-
-BULK INSERT #import
-FROM '<PATH>\day5_input_light_temperature.txt'
-
-INSERT INTO #mapping
-SELECT 'light'
-    ,'temperature'
-    ,SUBSTRING(import_chars, 1, CHARINDEX(' ', import_chars))
-    ,SUBSTRING(import_chars, CHARINDEX(' ', import_chars) + 1, LEN(import_chars) - CHARINDEX(' ', import_chars) - CHARINDEX(' ', REVERSE(import_chars)))
-    ,SUBSTRING(import_chars, LEN(import_chars) - CHARINDEX(' ', REVERSE(import_chars)) + 2, LEN(import_chars))
-FROM #import
-WHERE import_chars <> 'light-to-temperature map:'
-
-TRUNCATE TABLE #import
-
-BULK INSERT #import
-FROM '<PATH>\day5_input_temperature_humidity.txt'
-
-INSERT INTO #mapping
-SELECT 'temperature'
-    ,'humidity'
-    ,SUBSTRING(import_chars, 1, CHARINDEX(' ', import_chars))
-    ,SUBSTRING(import_chars, CHARINDEX(' ', import_chars) + 1, LEN(import_chars) - CHARINDEX(' ', import_chars) - CHARINDEX(' ', REVERSE(import_chars)))
-    ,SUBSTRING(import_chars, LEN(import_chars) - CHARINDEX(' ', REVERSE(import_chars)) + 2, LEN(import_chars))
-FROM #import
-WHERE import_chars <> 'temperature-to-humidity map:'
-
-TRUNCATE TABLE #import
-
-BULK INSERT #import
-FROM '<PATH>\day5_input_humidity_location.txt'
-
-INSERT INTO #mapping
-SELECT 'humidity'
-    ,'location'
-    ,SUBSTRING(import_chars, 1, CHARINDEX(' ', import_chars))
-    ,SUBSTRING(import_chars, CHARINDEX(' ', import_chars) + 1, LEN(import_chars) - CHARINDEX(' ', import_chars) - CHARINDEX(' ', REVERSE(import_chars)))
-    ,SUBSTRING(import_chars, LEN(import_chars) - CHARINDEX(' ', REVERSE(import_chars)) + 2, LEN(import_chars))
-FROM #import
-WHERE import_chars <> 'humidity-to-location map:'
+CREATE CLUSTERED INDEX ix_almanac ON #almanac(category)
 
 -- PART ONE
+DECLARE @input_first_row NVARCHAR(MAX) = SUBSTRING(@input, 1, CHARINDEX(CHAR(13), @input));
 
-BULK INSERT #import
-FROM '<PATH>\day5_input_seeds.txt'
-
-DROP TABLE IF EXISTS #conversions
-
-SELECT value AS seed 
-INTO #conversions
-FROM (
-    SELECT SUBSTRING(import_chars, CHARINDEX(':', import_chars) + 2, LEN(import_chars)) AS seeds
-    FROM #import
-) t
-CROSS APPLY STRING_SPLIT(seeds, ' ')
-
-ALTER TABLE #conversions
-ADD soil BIGINT
-    ,fertilizer BIGINT
-    ,water BIGINT
-    ,light BIGINT
-    ,temperature BIGINT
-    ,humidity BIGINT
-    ,location BIGINT
-
-UPDATE c
-SET c.soil = ISNULL(c.seed - m.source_number + m.destination_number, 123)
-FROM #conversions c
-LEFT JOIN #mapping m ON c.seed >= m.source_number AND c.seed <= m.source_number + m.conversion_range
-WHERE m.source = 'seed' AND m.destination = 'soil'
-
-UPDATE #conversions
-SET soil = seed
-WHERE soil IS NULL
-
-UPDATE c
-SET c.fertilizer = ISNULL(c.soil - m.source_number + m.destination_number, 123)
-FROM #conversions c
-LEFT JOIN #mapping m ON c.soil >= m.source_number AND c.soil <= m.source_number + m.conversion_range
-WHERE m.source = 'soil' AND m.destination = 'fertilizer'
-
-UPDATE #conversions
-SET fertilizer = seed
-WHERE fertilizer IS NULL
-
-UPDATE c
-SET c.water = ISNULL(c.fertilizer - m.source_number + m.destination_number, 123)
-FROM #conversions c
-LEFT JOIN #mapping m ON c.fertilizer >= m.source_number AND c.fertilizer <= m.source_number + m.conversion_range
-WHERE m.source = 'fertilizer' AND m.destination = 'water'
-
-UPDATE #conversions
-SET water = seed
-WHERE water IS NULL
-
-UPDATE c
-SET c.light = ISNULL(c.water - m.source_number + m.destination_number, 123)
-FROM #conversions c
-LEFT JOIN #mapping m ON c.water >= m.source_number AND c.water <= m.source_number + m.conversion_range
-WHERE m.source = 'water' AND m.destination = 'light'
-
-UPDATE #conversions
-SET light = seed
-WHERE light IS NULL
-
-UPDATE c
-SET c.temperature = ISNULL(c.light - m.source_number + m.destination_number, 123)
-FROM #conversions c
-LEFT JOIN #mapping m ON c.light >= m.source_number AND c.light <= m.source_number + m.conversion_range
-WHERE m.source = 'light' AND m.destination = 'temperature'
-
-UPDATE #conversions
-SET temperature = seed
-WHERE temperature IS NULL
-
-UPDATE c
-SET c.humidity = ISNULL(c.temperature - m.source_number + m.destination_number, 123)
-FROM #conversions c
-LEFT JOIN #mapping m ON c.temperature >= m.source_number AND c.temperature <= m.source_number + m.conversion_range
-WHERE m.source = 'temperature' AND m.destination = 'humidity'
-
-UPDATE #conversions
-SET humidity = seed
-WHERE humidity IS NULL
-
-UPDATE c
-SET c.location = ISNULL(c.humidity - m.source_number + m.destination_number, 123)
-FROM #conversions c
-LEFT JOIN #mapping m ON c.humidity >= m.source_number AND c.humidity <= m.source_number + m.conversion_range
-WHERE m.source = 'humidity' AND m.destination = 'location'
-
-UPDATE #conversions
-SET location = seed
-WHERE location IS NULL
-
-SELECT MIN(location) FROM #conversions
+WITH seeds AS (
+    SELECT CAST(s.value AS BIGINT) AS seed
+    FROM STRING_SPLIT(SUBSTRING(@input_first_row, CHARINDEX(':', @input_first_row) + 2, LEN(@input_first_row) - CHARINDEX(':', @input_first_row) - 2), ' ', 1) AS s
+),
+cte AS (
+    SELECT seed AS original_seed
+        ,seed as num
+        ,1 AS category
+    FROM seeds
+    UNION ALL
+    SELECT c.original_seed
+        ,ISNULL(c.num + (o.destination_start - o.source_start), c.num)
+        ,c.category + 1
+    FROM cte AS c
+    OUTER APPLY (
+        SELECT *
+        FROM #almanac as s
+        WHERE (c.num >= s.source_start AND c.num < s.source_start + s.range_length)
+        AND s.category = c.category
+    ) AS o
+    WHERE c.category < 8
+)
+SELECT MIN(num)
+FROM cte
+WHERE category = 8

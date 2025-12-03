@@ -1,5 +1,4 @@
-from pyhelper.pyimport import lines_to_list
-input = [50] + lines_to_list("2025\input\day1_input.txt")
+input = [50] + open("2025\input\day1_input.txt").read().split('\n')
 
 for i in range(1, len(input)):
     input[i] = input[i - 1] + (int(input[i][1:]) * (1 if input[i][0] == 'R' else -1))

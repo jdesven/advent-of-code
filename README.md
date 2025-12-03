@@ -13,10 +13,11 @@ Merry Christmas!
 
 | Year | Stars Earned | Languages Used |
 |------|---------------|----------------|
-| 2019 | 47 | Python |
-| 2022 | 16 | Python |
-| 2023 | 23 | T-SQL |
-| 2024 | 46 | Python |
+| 2019 | 47 / 50 | Python |
+| 2022 | 18 / 50 | Python |
+| 2023 | 23 / 50 | T-SQL |
+| 2024 | 46 / 50 | Python |
+| 2025 | 6 / 24 | Python |
 
 
 ## 📁 Structure Overview

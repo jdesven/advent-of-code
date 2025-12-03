@@ -4,8 +4,7 @@
 We start off by importing the input as a list, and then we calculate the value of the dial after every instruction. We pretend that this dial has infinitely many numbers in both the positive and negative direction - i.e. we do not flip back the dial position to the number 0 after passing the number 99. This will help us later when we need to calculate how many times we pass the number 0.
 
 ```python
-from pyhelper.pyimport import lines_to_list
-input = [50] + lines_to_list("2025\input\day1_input.txt")
+input = [50] + open("2025\input\day1_input.txt").read().split('\n')
 
 for i in range(1, len(input)):
     input[i] = input[i - 1] + (int(input[i][1:]) * (1 if input[i][0] == 'R' else -1))
